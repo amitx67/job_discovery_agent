@@ -17,12 +17,21 @@ export async function exportJobsToCSV(jobs) {
 
     const csvWriter = createObjectCsvWriter({
         path: filePath,
-        header: [
-            { id: "title", title: "Job Title" },
-            { id: "url", title: "Job URL" },
-            { id: "content", title: "Description Snippet" },
-            { id: "score", title: "Relevance Score" }
-        ]
+        
+header: [
+    { id: "title", title: "Job Title" },
+    { id: "url", title: "Source URL" },
+    { id: "content", title: "Search Snippet" },
+    { id: "extractedContent", title: "Extracted Content" },
+    { id: "score", title: "Relevance Score" },
+    { id: "sourceType", title: "Source Type" },
+    { id: "verificationStatus", title: "Verification Status" },
+    { id: "jobType", title: "Possible Job Type" },
+    { id: "applicationEvidenceFound", title: "Application Evidence Found" },
+    { id: "openStatus", title: "Open Status" },
+    { id: "extractionStatus", title: "Extraction Status" }
+]
+
     });
 
     await csvWriter.writeRecords(jobs);

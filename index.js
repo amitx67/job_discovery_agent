@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { searchJobs } from "./src/services/tavily.service.js";
 import { exportJobsToCSV } from "./src/services/export.service.js";
+import { extractJobContent } from "./src/services/tavily.service.js";
+import { verifyJobResult } from "./src/services/verification.service.js";
 
 async function main() {
 
@@ -38,8 +40,30 @@ async function main() {
             }
         }
 
-        console.log(`\nTotal unique search results: ${allJobs.length}`);
-        await exportJobsToCSV(allJobs);
+        
+console.log(`\nTotal unique search results: ${allJobs.length}`);
+
+console.log("\nExtracting webpage content...");
+
+const extractedJobs = await extractJobContent(allJobs);
+
+console.log("\nVerifying job evidence...");
+
+const verifiedJobs = extractedJobs.map((job) =>
+    verifyJobResult(job)
+);
+
+for (const job of verifiedJobs) {
+    console.log({
+        title: job.title,
+        verificationStatus: job.verificationStatus,
+        extractionStatus: job.extractionStatus,
+        openStatus: job.openStatus
+    });
+}
+
+await exportJobsToCSV(verifiedJobs);
+
 
 
         

@@ -34,3 +34,48 @@ export async function searchJobs (query, maxResults= 10) {
 
 }
 
+
+export async function extractJobContent(jobs) {
+    const extractedJobs = [];
+    const batchSize = 20;
+
+    for (let i = 0; i < jobs.length; i += batchSize) {
+        const batch = jobs.slice(i, i + batchSize);
+        const urls = batch.map((job) => job.url);
+
+        try {
+            const response = await tvly.extract(urls);
+
+            const extractedByUrl = new Map(
+                response.results.map((result) => [
+                    result.url,
+                    result.rawContent
+                ])
+            );
+
+            for (const job of batch) {
+                const content = extractedByUrl.get(job.url);
+
+                extractedJobs.push({
+                    ...job,
+                    extractedContent: content || "",
+                    extractionStatus: content
+                        ? "extracted"
+                        : "content_unavailable"
+                });
+            }
+        } catch (error) {
+            console.error("Content extraction failed:", error.message);
+
+            for (const job of batch) {
+                extractedJobs.push({
+                    ...job,
+                    extractedContent: "",
+                    extractionStatus: "extraction_failed"
+                });
+            }
+        }
+    }
+
+    return extractedJobs;
+}

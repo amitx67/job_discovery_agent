@@ -20,12 +20,15 @@ export async function exportJobsToCSV(jobs) {
         
 header: [
     
-{ id: "company", title: "Company" },
-{ id: "extractedJobTitle", title: "Job Title" },
-{ id: "location", title: "Location" },
-{ id: "jobType", title: "Job Type" },
-{ id: "applicationUrl", title: "Application URL" },
-{ id: "verificationEvidence", title: "Verification Evidence" }
+
+{ id: "remoteStatus", title: "Remote Status" },
+{ id: "summary", title: "Job Summary" },
+{ id: "requiredSkills", title: "Required Skills" },
+{ id: "llmConfidence", title: "LLM Confidence" },
+{ id: "missingFields", title: "Missing Fields" },
+{ id: "llmEvidenceNotes", title: "LLM Evidence Notes" },
+{ id: "llmCleaningStatus", title: "LLM Cleaning Status" }
+
 
 ]
 

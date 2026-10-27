@@ -3,6 +3,7 @@ import { searchJobs } from "./src/services/tavily.service.js";
 import { exportJobsToCSV } from "./src/services/export.service.js";
 import { extractJobContent } from "./src/services/tavily.service.js";
 import { verifyJobResult } from "./src/services/verification.service.js";
+import { cleanJobsWithGemini } from "./src/services/llm-cleaner.service.js";
 
 async function main() {
 
@@ -41,30 +42,34 @@ async function main() {
         }
 
         
+
 console.log(`\nTotal unique search results: ${allJobs.length}`);
 
 console.log("\nExtracting webpage content...");
 
 const extractedJobs = await extractJobContent(allJobs);
 
-console.log("\nVerifying job evidence...");
+console.log("\nApplying basic verification rules...");
 
 const verifiedJobs = extractedJobs.map((job) =>
     verifyJobResult(job)
 );
 
-for (const job of verifiedJobs) {
+console.log("\nCleaning job data with Gemini...");
+
+const cleanedJobs = await cleanJobsWithGemini(verifiedJobs);
+
+for (const job of cleanedJobs) {
     console.log({
-        title: job.title,
-        verificationStatus: job.verificationStatus,
-        extractionStatus: job.extractionStatus,
-        openStatus: job.openStatus
+        title: job.extractedJobTitle || job.title,
+        company: job.company ?? null,
+        location: job.location ?? null,
+        jobType: job.jobType ?? "unknown",
+        llmCleaningStatus: job.llmCleaningStatus
     });
 }
 
-await exportJobsToCSV(verifiedJobs);
-
-
+await exportJobsToCSV(cleanedJobs);
 
         
     } catch (error) {

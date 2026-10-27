@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { searchJobs } from "./src/services/tavily.service.js";
+import { exportJobsToCSV } from "./src/services/export.service.js";
 
 async function main() {
 
@@ -13,7 +14,7 @@ async function main() {
             'site:boards.greenhouse.io backend developer intern'
         ];
 
-        const seenUrls = new set();
+        const seenUrls = new Set();
         const allJobs = [];
 
         for (const query of queries) {
@@ -38,14 +39,13 @@ async function main() {
         }
 
         console.log(`\nTotal unique search results: ${allJobs.length}`);
+        await exportJobsToCSV(allJobs);
 
 
         
     } catch (error) {
-
-        throw new Error("Job search failed:", error.message);
-        
-    }
+    console.error("Job search failed:", error.message);
+}
     
 }
 

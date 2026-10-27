@@ -19,17 +19,14 @@ export async function exportJobsToCSV(jobs) {
         path: filePath,
         
 header: [
-    { id: "title", title: "Job Title" },
-    { id: "url", title: "Source URL" },
-    { id: "content", title: "Search Snippet" },
-    { id: "extractedContent", title: "Extracted Content" },
-    { id: "score", title: "Relevance Score" },
-    { id: "sourceType", title: "Source Type" },
-    { id: "verificationStatus", title: "Verification Status" },
-    { id: "jobType", title: "Possible Job Type" },
-    { id: "applicationEvidenceFound", title: "Application Evidence Found" },
-    { id: "openStatus", title: "Open Status" },
-    { id: "extractionStatus", title: "Extraction Status" }
+    
+{ id: "company", title: "Company" },
+{ id: "extractedJobTitle", title: "Job Title" },
+{ id: "location", title: "Location" },
+{ id: "jobType", title: "Job Type" },
+{ id: "applicationUrl", title: "Application URL" },
+{ id: "verificationEvidence", title: "Verification Evidence" }
+
 ]
 
     });

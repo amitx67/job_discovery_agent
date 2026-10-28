@@ -1,4 +1,3 @@
-
 import express from "express";
 import { getAllJobs } from "../controllers/job.controller.js";
 

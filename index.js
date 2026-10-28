@@ -1,4 +1,3 @@
-
 import "dotenv/config";
 import { searchJobs } from "./src/services/tavily.service.js";
 import { exportJobsToCSV } from "./src/services/export.service.js";

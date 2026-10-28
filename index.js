@@ -7,19 +7,42 @@ import { cleanJobsWithGemini } from "./src/services/llm-cleaner.service.js";
 import connectToDB from "./src/config/db.js";
 import saveJobsToDB from "./src/services/database.service.js";
 import mongoose from "mongoose";
+import { readCompaniesFromCSV } from "./src/services/company-csv.service.js";
 
 async function main() {
     try {
         // Connect to MongoDB before processing jobs
         await connectToDB();
 
-        const queries = [
-            '"software engineering intern" careers 2026',
-            '"junior backend developer" entry level jobs',
-            'remote software developer internships worldwide',
-            'site:jobs.lever.co software engineer intern',
-            'site:boards.greenhouse.io backend developer intern'
-        ];
+        const companies = await readCompaniesFromCSV();
+
+        if (companies.length === 0) {
+    throw new Error(
+        "No valid companies found in data/companies.csv"
+    );
+}
+
+console.log(`Loaded ${companies.length} companies from CSV.`);
+
+console.log(`Loaded ${companies.length} companies from CSV.`);
+
+const jobTypes = [
+    "software engineering intern",
+    "junior backend developer"
+];
+
+const queries = [
+    '"software engineering intern" careers 2026',
+    '"junior backend developer" entry level jobs',
+    'remote software developer internships worldwide',
+    'site:jobs.lever.co software engineer intern',
+    'site:boards.greenhouse.io backend developer intern',
+    ...companies.flatMap(({ company }) =>
+        jobTypes.map(
+            (jobType) => `"${company}" "${jobType}" jobs`
+        )
+    )
+];
 
         const seenUrls = new Set();
         const allJobs = [];

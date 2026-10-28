@@ -21,6 +21,7 @@ const saveJobsToDB = async (jobs) => {
                             company: job.company || "Unknown",
                             location: job.location || "Unknown",
                             jobType: job.jobType || "Unknown",
+                            remoteStatus: job.remoteStatus || "unknown",
                             url: job.url,
                             description: job.description || "",
                             source: job.source || "Unknown",

@@ -22,6 +22,12 @@ const jobSchema = new mongoose.Schema(
             default: "Unknown",
             trim: true,
         },
+        remoteStatus: {
+            type: String,
+            enum: ["remote", "hybrid", "onsite", "unknown"],
+            default: "unknown",
+            trim: true,
+        },
         url: {
             type: String,
             required: true,

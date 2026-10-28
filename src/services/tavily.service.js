@@ -12,27 +12,45 @@ const tvly =tavily({
     apiKey: process.env.TAVILY_API_KEY
 });
 
-export async function searchJobs (query, maxResults= 10) {
+
+export async function searchJobs(query, maxResults = 10) {
     if (!query || typeof query !== "string") {
         throw new Error("valid query is required");
-        
-        
     }
-    const response = await tvly.search(query, {
-        searchDepth: "basic",
-        maxResults,
-        topic: "general"
-    });
 
-    return response.results.map((result) => ({
-        title: result.title,
-        url: result.url,
-        content: result.content,
-        score: result.score
+    const maxAttempts = 3;
 
-    }));
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            const response = await tvly.search(query, {
+                searchDepth: "basic",
+                maxResults,
+                topic: "general",
+            });
 
+            return response.results.map((result) => ({
+                title: result.title,
+                url: result.url,
+                content: result.content,
+                score: result.score,
+            }));
+        } catch (error) {
+            console.error(
+                `Tavily search attempt ${attempt}/${maxAttempts} failed:`,
+                error.message
+            );
+
+            if (attempt === maxAttempts) {
+                throw error;
+            }
+
+            await new Promise((resolve) =>
+                setTimeout(resolve, attempt * 2000)
+            );
+        }
+    }
 }
+
 
 
 export async function extractJobContent(jobs) {

@@ -3,6 +3,7 @@ import express from "express";
 import mongoose from "mongoose";
 import connectToDB from "./src/config/db.js";
 import jobRouter from "./src/routes/job.routes.js";
+import { startScheduler } from "./src/services/scheduler.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -24,6 +25,7 @@ async function startServer() {
 
         app.listen(PORT, () => {
             console.log(`API server running at http://localhost:${PORT}`);
+            startScheduler();
         });
     } catch (error) {
         console.error("Failed to start API server:", error.message);

@@ -25,7 +25,7 @@ async function startServer() {
 
         app.listen(PORT, () => {
             console.log(`API server running at http://localhost:${PORT}`);
-            startScheduler();
+            // startScheduler();
         });
     } catch (error) {
         console.error("Failed to start API server:", error.message);

@@ -1,26 +1,37 @@
 Remote Status,Job Summary,Required Skills,LLM Confidence,Missing Fields,LLM Evidence Notes,LLM Cleaning Status
-unknown,,,low,"company,jobTitle,location,applicationUrl,summary","The page is an Indeed search results page listing multiple different jobs, but no single specific job is the primary focus of the page.",cleaned
-unknown,,,low,"company,jobTitle,location,applicationUrl,summary","The page is an intern list index page with links to various companies and roles, but no single job is detailed.",cleaned
-unknown,,,medium,"location,summary",The page discusses the Software Engineer Program Internship at JPMorgan Chase & Co. with an application link.,cleaned
-unknown,Spend eleven weeks building software and bringing healthcare into the future as a Software Development Intern.,,high,location,The page is dedicated to the Software Development Intern role at Epic with an explicit apply URL.,cleaned
-unknown,,,low,"company,jobTitle,location,applicationUrl,summary","The page is a GitHub repository home page for a collection of internship/job links, not an individual job posting.",cleaned
-hybrid,"Junior Java Developer to join development team and help build, maintain, and improve software applications.",Java,high,applicationUrl,Pioneer Consulting Services LLC is hiring a Jr. Java Developer/Software Engineer remote/hybrid across USA.,cleaned
-unknown,Job search listing for Junior Backend Developer jobs.,,low,"applicationUrl,company,location",Indeed result provides no job details or company name.,cleaned
-unknown,Job search listing for Entry Level Back End Developer jobs.,,low,"applicationUrl,company,location",ZipRecruiter search page provides no individual job postings or company details.,cleaned
-remote,Junior Python Backend Developer enhancing uNaice’s automated content production and data enrichment platform.,"Python,APIs,data pipelines,React,backend services",high,applicationUrl,"Remote Rocketship listing for Junior Backend Developer, Python at uNaice GmbH.",cleaned
-remote,"Java Developer Intern learning Java, Spring Boot, SQL, and testing with mentorship at Sigma Software.","Java,Spring Boot,SQL,testing,Gradle,JUnit,Linux,Maven,Mockito,Spring",high,,Remote Rocketship listing for Java Developer Intern at Sigma Software Group with apply URL.,cleaned
-remote,Worldwide remote freelance Blockchain Developer position.,,high,,Found in NoDesk remote internships list,cleaned
-remote,"Health-tech co-op student contributing to product, data, operations, and business projects at Fullscript.",,high,,Found on Remote Rocketship software developer internships page,cleaned
-,,,,,,missing_from_llm_response
-,,,,,,missing_from_llm_response
-,,,,,,missing_from_llm_response
-remote,"Software Engineering Intern position to assist in the design, development, and testing of software features, debug issues, and contribute to system performance.","Python,JavaScript,Java,C++",high,,The listing is for a Software Engineer Intern position via Weekday (client role) in Bengaluru (Remote).,cleaned
-onsite,"Software Engineer Intern to build software at scale, contribute high-quality code to core products like Palantir Gotham, Foundry, or Apollo, and participate throughout the product lifecycle.","Java,Go,Typescript,Cassandra,Spark,Elasticsearch,React,Redux,Gradle,GitHub",high,,"Software Engineer, Internship role located in Palo Alto, CA.",cleaned
-onsite,"Software Engineer Intern to develop low latency, high-performance proprietary trading systems through the full software development lifecycle.","C++,C#,Java",high,,"Software Engineer Intern - Summer 2027 in Chicago. Application URL not explicitly flagged as an application link in the snippet, but website link is present. Wait, rule 7: 'Only return an application URL if the supplied evidence identifies it as an application link.' Since no explicit application link button URL is provided in the page content snippet besides the home page, set applicationUrl to null.",cleaned
-onsite,"Software Engineering Interns help build robust and scalable solutions, designing end-to-end solutions that integrate industry-leading models into clients' businesses.","Python,Go,Java,C++,R,JavaScript",high,,Software Engineering Intern position in Europe.,cleaned
-onsite,"Software Development Engineer Intern to design, build, and test code powering autonomous systems, working alongside full-time engineers.","C,C++,Python,Java,JavaScript,Git",high,,Summer 2027 - Software Engineer Intern position across multiple US locations.,cleaned
-unknown,Parallel Systems is seeking Software Engineering Interns to help build the software that runs their vehicles and the platform behind their fleet. Interns are placed on a vehicle software or backend/full-stack project based on background and team priorities.,,high,location,"The sourceUrl links directly to a Greenhouse job application for Software Engineering Intern (Embedded, Backend, Fullstack) at Parallel Systems.",cleaned
-unknown,"Careers page for Wing, a drone delivery company, but no specific job position is available in the provided content.",,medium,"jobTitle,location","The sourceUrl is a Greenhouse careers page for Wing, but the specific job title, location, and application link for an active role are not present in the snippet or content.",cleaned
-unknown,"Neo4j careers landing page highlighting company values, growth, and open roles placeholder.",,medium,"jobTitle,location","The sourceUrl points to the Neo4j careers landing page on Greenhouse. Specific job title, location, and role details are not provided in the text.",cleaned
-unknown,Udemy careers and company information page.,,medium,"jobTitle,location",The sourceUrl is a Udemy careers page on Greenhouse. No specific job title or description is provided in the snippet or content.,cleaned
-unknown,"Robinhood careers page detailing company culture, values, and benefits.",,medium,"jobTitle,location","The sourceUrl is a Robinhood careers page. Specific job title, location, and role details are not present in the snippet or content.",cleaned
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+onsite,"Layup Parts is seeking a Software Engineering Intern to work on real production software, build factory operating systems, design interfaces for production machinery, and create new features for customer portals in Huntington Beach, CA.","Go,React TS,Rust",high,,"Job title, location, company, skills, and application URL are explicitly supported.",cleaned
+unknown,Parallel Systems is seeking Software Engineering Interns to help build the software that runs their autonomous battery-electric rail vehicles and the platform behind their fleet.,,high,location,"Job title, company, location, and application details are supported. Location is not explicitly specified in the text excerpt, so location is null.",cleaned
+unknown,Hex careers page listing internships and early-career roles including AI Engineer Intern.,,medium,"location,applicationUrl,remoteStatus,requiredSkills","The page is a general careers/internship page mentioning 'AI Engineer Intern' briefly in snippet, but does not provide specific job details or application link for a single specific vacancy.",cleaned
+unknown,General careers page for Wing drone delivery showing no positions available at this time.,,low,"jobTitle,location,applicationUrl,requiredSkills",General careers page with no open positions available at this time.,cleaned
+unknown,General careers page and overview of the interview process at Ivalua.,,low,"jobTitle,location,applicationUrl,requiredSkills",General careers landing page for Ivalua with no specific job title or vacancy details provided.,cleaned
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+unknown,"Overview page for Microsoft Global University Internships, featuring various student and intern programs including Discovery, Explore, and PhD/MBA/JD opportunities.",,low,"applicationUrl,specific location","This is a general careers and university internships page listing various programs (Discovery, Explore, PhD, MBA, JD, Student Ambassador, Imagine Cup, Datacenter Pathways) rather than a single specific job vacancy.",cleaned
+hybrid,"Senior Software Engineer position within the Explore Microsoft Program, focused on building platforms, tooling, and automation for security, compliance, and cloud readiness.","C,C++,C#,Java,JavaScript,Python",high,applicationUrl,"The page lists a specific Senior Software Engineer position within the Explore Microsoft Program, detailing overview, responsibilities, and qualifications.",cleaned
+unknown,"General careers landing page for Microsoft Early in Profession and student programs, featuring global university internships, Discovery, Explore, and rotation programs.",,low,"applicationUrl,specific location","This is a general early in profession and student careers page listing multiple internship and rotation programs, not a specific single job vacancy.",cleaned
+unknown,Job board search results page for Microsoft Backend Developer jobs.,"Microsoft Azure,SQL",low,"company,location,applicationUrl,summary",This is a job board search results page from ZipRecruiter listing multiple Microsoft Backend Developer jobs rather than a specific job vacancy with detailed direct information.,cleaned
+hybrid,"Senior Executive Business Administrator supporting the Corporate Vice President and worldwide organization building Microsoft 365 Copilot Search & Chat in Redmond, WA.","Microsoft Office,Teams,Outlook,Word,Excel,PowerPoint",high,applicationUrl,"The page lists a specific Senior Executive Business Administrator position based in Redmond, Washington.",cleaned
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+,,,,,,failed
+unknown,General careers page for Atlassian listing open positions across multiple roles and locations.,,medium,"jobTitle,jobType,remoteStatus","The input is a general careers and listings page listing multiple vacancies rather than a single specific job. Used null for jobTitle as per rules for general pages, although several roles are mentioned in the snippet.",cleaned

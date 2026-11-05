@@ -1,12 +1,14 @@
+import { extractDomain, normalizeUrl } from "../utils/url.js";
 
-export function verifyJobResult(job) {
+// Rule-based verification. The optional `knownCareersDomains` list (from
+// data/companies.csv) lets us recognise a company's own careers site.
+export function verifyJobResult(job, knownCareersDomains = []) {
     const title = job.title || "";
     const content = job.extractedContent || "";
     const url = job.url || "";
 
     const text = `${title}\n${content}`;
-    const lowerText = text.toLowerCase();
-    const normalizedUrl = url.toLowerCase();
+    const normalizedUrl = (normalizeUrl(url) || url).toLowerCase();
 
     // Identify whether the result looks like a specific vacancy.
     const jobTitlePattern =
@@ -27,7 +29,9 @@ export function verifyJobResult(job) {
     const hasApplicationEvidence = applicationPattern.test(content);
     const looksLikeGeneralPage = generalPagePattern.test(title);
 
-    // Determine the source category.
+    // Determine the source category. A host found in data/companies.csv
+    // is treated as the company's own careers site.
+    const domain = extractDomain(url);
     let sourceType = "third_party_or_unknown";
 
     if (
@@ -35,6 +39,8 @@ export function verifyJobResult(job) {
         normalizedUrl.includes("boards.greenhouse.io/")
     ) {
         sourceType = "job_platform";
+    } else if (knownCareersDomains.includes(domain)) {
+        sourceType = "company_careers_page";
     } else if (
         normalizedUrl.includes("/careers/") ||
         normalizedUrl.includes("careers.") ||
@@ -75,13 +81,14 @@ export function verifyJobResult(job) {
         location = "Remote (eligibility unverified)";
     }
 
-    // Determine the likely job type.
+    // Determine the likely job type. Values match the LLM enum so both
+    // verification paths write the same vocabulary to MongoDB.
     let jobType = "unknown";
 
     if (internshipPattern.test(title)) {
         jobType = "internship";
     } else if (fullTimePattern.test(title)) {
-        jobType = "possible_full_time";
+        jobType = "full_time";
     }
 
     // Build a more cautious verification status.
@@ -110,11 +117,11 @@ export function verifyJobResult(job) {
         extractedJobTitle: title,
         location,
         jobType,
+        source: domain,
         sourceType,
         applicationUrl,
         applicationEvidenceFound: hasApplicationEvidence,
         verificationStatus,
-        openStatus: "unknown",
         verificationEvidence: [
             job.extractionStatus === "extracted"
                 ? "Page content extracted"

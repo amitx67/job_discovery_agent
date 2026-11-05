@@ -1,36 +1,45 @@
 import cron from "node-cron";
-import { spawn } from "node:child_process";
+import { config } from "../config/env.js";
+import { runDiscoveryPipeline } from "../pipeline.js";
 
 let isRunning = false;
 
-const runJobDiscovery = () => {
+// Runs the pipeline in-process (the API server keeps its MongoDB
+// connection, so no child process and no reconnection is needed).
+export async function runScheduledDiscovery() {
     if (isRunning) {
         console.log("Previous job discovery is still running. Skipping this run.");
-        return;
+        return { status: "skipped" };
     }
 
     isRunning = true;
 
-    const process = spawn("node", ["index.js"], {
-        stdio: "inherit",
-    });
-
-    process.on("error", (error) => {
-        console.error("Failed to start job discovery:", error.message);
+    try {
+        const summary = await runDiscoveryPipeline({ disconnectDb: false });
+        console.log("Scheduled job discovery finished:", summary.status);
+        return summary;
+    } catch (error) {
+        console.error("Scheduled job discovery failed:", error.message);
+        return { status: "failed", error: error.message };
+    } finally {
         isRunning = false;
-    });
+    }
+}
 
-    process.on("close", (code) => {
-        console.log(`Job discovery finished with exit code: ${code}`);
-        isRunning = false;
-    });
-};
+export function startScheduler() {
+    if (!cron.validate(config.schedulerCron)) {
+        throw new Error(
+            `Invalid SCHEDULER_CRON expression: "${config.schedulerCron}"`
+        );
+    }
 
-export const startScheduler = () => {
-    cron.schedule("0 */6 * * *", () => {
+    cron.schedule(config.schedulerCron, () => {
         console.log("Scheduled job discovery triggered.");
-        runJobDiscovery();
+        runScheduledDiscovery();
     });
 
-    console.log("Job discovery scheduler started. Runs every 6 hours..");
-};
+    console.log(
+        `Job discovery scheduler started (cron: ${config.schedulerCron}). ` +
+        `Set ENABLE_SCHEDULER=false to disable.`
+    );
+}

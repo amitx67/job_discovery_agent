@@ -1,15 +1,11 @@
-
 import { ChatGoogle } from "@langchain/google";
 import { z } from "zod";
-
-if (!process.env.GOOGLE_API_KEY) {
-    throw new Error("GOOGLE_API_KEY is missing from .env");
-}
+import { config, requireEnv } from "../config/env.js";
 
 const model = new ChatGoogle({
-    model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
-    apiKey: process.env.GOOGLE_API_KEY,
-    temperature: 0
+    model: config.geminiModel,
+    apiKey: requireEnv("GOOGLE_API_KEY"),
+    temperature: 0,
 });
 
 const jobSchema = z.object({
@@ -44,9 +40,27 @@ const cleaningSchema = z.object({
 
 const structuredModel = model.withStructuredOutput(cleaningSchema);
 
-export async function cleanJobsWithGemini(jobs) {
+async function invokeCleaner(prompt) {
+    const maxAttempts = 2;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            return await structuredModel.invoke(prompt);
+        } catch (error) {
+            if (attempt === maxAttempts) {
+                throw error;
+            }
+
+            console.warn(
+                `Gemini cleaning attempt ${attempt} failed, retrying once:`,
+                error.message
+            );
+        }
+    }
+}
+
+export async function cleanJobsWithGemini(jobs, batchSize = config.llmBatchSize) {
     const cleanedJobs = [];
-    const batchSize = 5;
 
     for (let i = 0; i < jobs.length; i += batchSize) {
         const batch = jobs.slice(i, i + batchSize);
@@ -55,11 +69,13 @@ export async function cleanJobsWithGemini(jobs) {
             sourceUrl: job.url,
             searchTitle: job.title,
             searchSnippet: job.content || "",
-            pageContent: (job.extractedContent || "").slice(0, 7000)
+            pageContent: (job.extractedContent || "").slice(
+                0,
+                config.llmMaxPageContent
+            )
         }));
 
-        
-const prompt = `
+        const prompt = `
 You are a job-data extraction and normalization system.
 
 Extract structured information from the supplied job search results.
@@ -93,9 +109,8 @@ Rules:
 Input data:
 ${JSON.stringify(inputJobs)}`;
 
-
         try {
-            const response = await structuredModel.invoke(prompt);
+            const response = await invokeCleaner(prompt);
 
             const resultsByUrl = new Map(
                 response.jobs.map((job) => [job.sourceUrl, job])

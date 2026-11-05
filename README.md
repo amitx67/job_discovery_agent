@@ -28,79 +28,91 @@ This is an evolving project. The current version focuses on building a working e
 - 🔎 **Web Search:** Discover job-related pages using Tavily.
 - 🌍 **Worldwide Discovery:** Search queries include remote and international opportunities.
 - 💼 **Multiple Job Types:** Search for internships, full-time roles, and entry-level positions.
-- 🔗 **URL Deduplication:** Remove repeated URLs from search results before processing.
+- 🏢 **Company Queries from CSV:** `data/companies.csv` drives company-specific searches, including `site:` queries restricted to each company's careers domain.
+- 🔗 **URL Normalization & Deduplication:** Tracking parameters, trailing slashes and scheme differences are normalized away before deduplication, across all queries.
+- ⏭️ **Known-Job Skipping:** URLs already stored in MongoDB are skipped before extraction and LLM cleaning, saving API usage.
 - 📄 **Content Extraction:** Extract webpage content for further processing.
 - 🛡️ **Rule-Based Verification:** Classify results according to job-related evidence.
 - 🧠 **AI-Powered Data Cleaning:** Use Gemini through LangChain to normalize job information.
-- 🗄️ **MongoDB Atlas Integration:** Store and update job records using Mongoose.
-- 📊 **CSV Export:** Export processed job records to `exports/jobs.csv`.
-- 🚀 **REST API:** Retrieve stored job records through Express.js.
+- 🗄️ **MongoDB Atlas Integration:** Store and update job records using Mongoose — including LLM-cleaned fields (summary, skills, confidence, evidence).
+- 📊 **CSV Export:** Export processed job records to `exports/jobs.csv` with full identity and AI fields.
+- 🚀 **REST API:** Retrieve stored job records with pagination, filtering and aggregate statistics through Express.js.
+- ⏱️ **Scheduled Discovery:** Optional in-process cron scheduler (enabled via `ENABLE_SCHEDULER=true`).
+- 🧪 **Automated Tests:** Unit tests for URL normalization, deduplication, query building, verification, CSV export, company import and the Mongoose schema.
 - ❤️ **Health Check:** Check whether the API is running.
-
-### Planned
-
-- ⏱️ Scheduled job discovery.
-- 🏢 Import company lists and hiring details from CSV.
-- 🔄 Improved duplicate detection beyond URL matching.
-- 🎯 Better filtering for relevant internships and full-time jobs.
-- ✅ Stronger verification of individual job listings.
-- 📈 Improved data quality and error handling.
-- 🧪 Automated tests and production-level reliability improvements.
+- 🛑 **Graceful Shutdown:** SIGTERM/SIGINT close the server and MongoDB connection cleanly.
+- 🚦 **Rate Limiting:** Simple in-memory rate limiter protects the API.
 
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |---|---|
 | JavaScript (ES Modules) | Application logic |
-| Node.js | JavaScript runtime |
+| Node.js (>= 20) | JavaScript runtime |
 | Express.js | REST API |
 | MongoDB Atlas | Cloud database |
 | Mongoose | MongoDB object modeling |
 | Tavily | Web search and webpage content extraction |
 | Gemini | AI-powered job data cleaning |
 | LangChain | Integration with AI models |
+| node-cron | Scheduled job discovery |
+| node:test | Automated tests (no extra dependency) |
 | CSV | Exporting processed job records |
-| Nodemon (optional) | Development workflow |
 
 ## 📁 Project Structure
 
 ```text
 git_agent/
 │
-├── index.js
-├── server.js
-├── test-db.js
+├── index.js                    # CLI entry point for a one-off discovery run
+├── server.js                   # Express API (and optional scheduler host)
+├── test-db.js                  # Standalone database connection test
 ├── package.json
-├── package-lock.json
-├── .env
-├── .gitignore
+├── .env                        # Local secrets (never commit)
+├── .env.example                # Template for required/optional variables
 ├── README.md
 │
-├── src/
-│   ├── config/
-│   │   └── db.js
-│   │
-│   ├── controllers/
-│   │   └── job.controller.js
-│   │
-│   ├── models/
-│   │   └── job.model.js
-│   │
-│   ├── routes/
-│   │   └── job.routes.js
-│   │
-│   └── services/
-│       ├── tavily.service.js
-│       ├── export.service.js
-│       ├── verification.service.js
-│       ├── llm-cleaner.service.js
-│       └── database.service.js
+├── data/
+│   └── companies.csv           # Optional company list (company,careersUrl)
 │
-└── exports/
-    └── jobs.csv
+├── exports/
+│   └── jobs.csv                # Generated CSV export
+│
+├── tests/                      # Automated tests (node --test)
+│   ├── url.test.js
+│   ├── dedupe.test.js
+│   ├── query-builder.test.js
+│   ├── verification.test.js
+│   ├── export.test.js
+│   ├── company-csv.test.js
+│   └── job-model.test.js
+│
+└── src/
+    ├── pipeline.js             # Reusable discovery pipeline (CLI + scheduler)
+    ├── config/
+    │   ├── env.js              # Central env config with defaults
+    │   └── db.js               # MongoDB connection
+    ├── controllers/
+    │   └── job.controller.js   # List (paginated), stats, get-by-id
+    ├── middleware/
+    │   └── rate-limiter.js     # In-memory fixed-window rate limiter
+    ├── models/
+    │   └── job.model.js        # Mongoose schema + indexes
+    ├── routes/
+    │   └── job.routes.js
+    ├── services/
+    │   ├── tavily.service.js
+    │   ├── export.service.js
+    │   ├── verification.service.js
+    │   ├── llm-cleaner.service.js
+    │   ├── database.service.js
+    │   ├── company-csv.service.js
+    │   └── scheduler.service.js
+    └── utils/
+        ├── url.js              # URL normalization + domain extraction
+        ├── dedupe.js           # Normalized-URL deduplication
+        └── query-builder.js    # Query list construction
 ```
-
-*The structure above reflects the current project organization. Generated files and local configuration may differ between environments.*
 
 ## ⚙️ How It Works
 
@@ -110,34 +122,40 @@ The current discovery pipeline follows these steps:
 Start Job Discovery
         |
         v
-Run Tavily Search Queries
+Load Companies from CSV (optional)
         |
         v
-Collect Search Results
+Build Queries (generic + company + site: queries)
         |
         v
-Deduplicate URLs
+Run Tavily Search Queries (a failing query is skipped, not fatal)
+        |
+        v
+Normalize URLs and Deduplicate Across Queries
+        |
+        v
+Skip URLs Already Stored in MongoDB (SKIP_KNOWN_JOBS)
         |
         v
 Extract Webpage Content
         |
         v
-Verify Job-Related Evidence
+Verify Job-Related Evidence (rules + known careers domains)
         |
         v
 Clean and Normalize with Gemini
         |
         v
-Save or Update Jobs in MongoDB
+Save or Update Jobs in MongoDB (all cleaned fields persisted)
         |
         v
 Export Jobs to CSV
         |
         v
-Finish
+Finish (run summary printed)
 ```
 
-The Express API runs separately from the discovery pipeline and reads the stored job records from MongoDB.
+The Express API runs separately from the discovery pipeline and reads the stored job records from MongoDB. When `ENABLE_SCHEDULER=true`, the API server also runs the same pipeline on a cron schedule.
 
 ## 🚀 Getting Started
 
@@ -145,7 +163,7 @@ The Express API runs separately from the discovery pipeline and reads the stored
 
 Install or configure the following before running the project:
 
-- [Node.js](https://nodejs.org/)
+- [Node.js](https://nodejs.org/) >= 20
 - npm
 - A MongoDB Atlas account and database
 - A Tavily API key
@@ -166,17 +184,15 @@ Replace `<your-repository-url>` with your actual repository URL.
 npm install
 ```
 
-If Express is not already installed:
-
-```bash
-npm install express
-```
-
 ### 3. Configure Environment Variables
 
-Create a `.env` file in the project root.
+Copy the template and fill in your real values:
 
-Add the environment variables expected by your current code:
+```bash
+cp .env.example .env
+```
+
+Required variables:
 
 ```env
 PORT=8000
@@ -185,7 +201,7 @@ TAVILY_API_KEY=your_tavily_api_key
 GOOGLE_API_KEY=your_google_api_key
 ```
 
-Use the exact environment variable names referenced in your service files. If your Gemini integration uses a different key name, update the example accordingly.
+Optional variables (defaults shown in `.env.example`) control the scheduler (`ENABLE_SCHEDULER`, `SCHEDULER_CRON`) and pipeline tuning (`SEARCH_MAX_RESULTS`, `MAX_QUERIES`, `SKIP_KNOWN_JOBS`, `EXTRACT_BATCH_SIZE`, `LLM_BATCH_SIZE`, `LLM_MAX_PAGE_CONTENT`, `DNS_SERVERS`).
 
 **Security note:** Never commit `.env` or expose API keys, database credentials, or connection strings containing passwords.
 
@@ -195,9 +211,7 @@ Use the exact environment variable names referenced in your service files. If yo
 npm run dev
 ```
 
-This runs `index.js` and starts the current discovery workflow.
-
-Depending on your implementation, the workflow searches for jobs, processes the results, saves them to MongoDB, and exports the CSV file.
+This runs `index.js`, which executes one discovery run end to end and prints a JSON run summary at the end.
 
 ### 5. Run the Express API
 
@@ -207,7 +221,7 @@ Open another terminal in the project directory:
 npm run dev:api
 ```
 
-The API should connect to MongoDB and start on the configured port.
+The API connects to MongoDB and starts on the configured port.
 
 Default local address:
 
@@ -215,23 +229,24 @@ Default local address:
 http://localhost:8000
 ```
 
+### 6. Enable Scheduled Discovery (optional)
+
+Set in `.env`:
+
+```env
+ENABLE_SCHEDULER=true
+SCHEDULER_CRON=0 */6 * * *
+```
+
+Then start the API with `npm run dev:api`. The pipeline now runs in-process every 6 hours (or on your custom cron expression). Overlapping runs are prevented automatically.
+
 ## 🌐 API Endpoints
 
 ### Health Check
 
-**Endpoint**
-
 ```http
 GET /api/health
 ```
-
-**Full URL**
-
-```text
-http://localhost:8000/api/health
-```
-
-Checks whether the API server is running.
 
 **Example response**
 
@@ -242,66 +257,112 @@ Checks whether the API server is running.
 }
 ```
 
-### Get All Jobs
-
-**Endpoint**
+### Get All Jobs (with pagination and filters)
 
 ```http
 GET /api/jobs
 ```
 
-**Full URL**
+**Query parameters**
+
+| Parameter | Example | Description |
+|---|---|---|
+| `page` | `2` | Page number (default 1) |
+| `limit` | `50` | Results per page, max 100 (default 20) |
+| `q` | `intern` | Free-text search over title, company and description |
+| `company` | `google` | Partial match, case-insensitive |
+| `jobType` | `internship` | Exact match: `internship`, `full_time`, `part_time`, `contract`, `unknown` |
+| `location` | `berlin` | Partial match |
+| `remoteStatus` | `remote` | Exact match: `remote`, `hybrid`, `onsite`, `unknown` |
+| `verificationStatus` | `possible_individual_listing` | Exact match |
+| `sourceType` | `company_careers_page` | Exact match |
+| `llmConfidence` | `high` | Exact match: `low`, `medium`, `high` |
+| `source` | `example.com` | Exact match on the source domain |
+
+**Example request**
 
 ```text
-http://localhost:8000/api/jobs
+http://localhost:8000/api/jobs?jobType=internship&remoteStatus=remote&page=1&limit=10
 ```
-
-Returns stored job records from MongoDB, sorted by creation date.
 
 **Example response**
 
 ```json
 {
   "success": true,
-  "count": 25,
+  "count": 10,
+  "total": 57,
+  "page": 1,
+  "totalPages": 6,
   "jobs": [
     {
       "_id": "example-mongodb-id",
-      "company": "Example Company",
       "title": "Software Engineering Intern",
-      "url": "https://example.com/careers/job",
-      "jobType": "internship",
+      "company": "Example Company",
       "location": "Remote",
-      "description": "",
-      "source": "Unknown",
-      "verificationStatus": "possible_job_listing"
+      "jobType": "internship",
+      "remoteStatus": "remote",
+      "url": "https://example.com/careers/job",
+      "applicationUrl": null,
+      "summary": "Work on the platform team for 12 weeks.",
+      "requiredSkills": ["Python", "Django"],
+      "source": "example.com",
+      "sourceType": "company_careers_page",
+      "verificationStatus": "possible_individual_listing",
+      "llmConfidence": "high",
+      "llmCleaningStatus": "cleaned"
     }
   ]
 }
 ```
 
-*The response above is illustrative. Actual fields and values depend on the records stored in the database.*
+### Job Statistics
+
+```http
+GET /api/jobs/stats
+```
+
+Returns aggregate counts: total jobs, jobs found in the last 7 days, breakdowns by `jobType`, `remoteStatus` and `verificationStatus`, the top 10 companies, and how many records include an application URL.
+
+**Example response**
+
+```json
+{
+  "success": true,
+  "total": 57,
+  "withApplicationUrl": 12,
+  "foundLast7Days": 20,
+  "byJobType": [{ "_id": "internship", "count": 31 }],
+  "byRemoteStatus": [{ "_id": "remote", "count": 18 }],
+  "byVerificationStatus": [{ "_id": "possible_job_listing", "count": 25 }],
+  "topCompanies": [{ "_id": "JPMorgan Chase", "count": 4 }]
+}
+```
+
+### Get a Single Job
+
+```http
+GET /api/jobs/:id
+```
+
+Returns one job by MongoDB id, or `404` when it does not exist (`400` for malformed ids).
+
+### Rate Limiting
+
+`/api` routes are limited to 120 requests per minute per IP. Exceeding the limit returns `429` with a `Retry-After` header.
 
 ## 🗄️ Database
 
 The application uses MongoDB Atlas for cloud storage and Mongoose for database operations.
 
-Job records can include fields such as:
+Job records include:
 
-- `company`
-- `title`
-- `url`
-- `jobType`
-- `location`
-- `description`
-- `source`
-- `verificationStatus`
-- `createdAt`
-- `updatedAt`
+- Identity: `title`, `company`, `location`, `url` (unique, normalized), `applicationUrl`, `source` (domain), `sourceType`
+- Classification: `jobType`, `remoteStatus`, `verificationStatus`, `verificationEvidence`, `extractionStatus`
+- AI-cleaned data: `summary`, `description`, `requiredSkills`, `llmConfidence`, `llmCleaningStatus`, `llmEvidenceNotes`, `missingFields`
+- Timestamps: `createdAt`, `updatedAt`
 
-The exact fields depend on the current schema.
-
-The database service uses the job URL to identify records for updating or inserting. This helps avoid creating a new database record for the same URL during repeated processing, provided the URL is normalized consistently.
+The database service upserts on the **normalized** URL, so the same listing found through different query variants or with tracking parameters updates one record instead of creating duplicates. Indexes on `company`, `jobType`, `remoteStatus`, `verificationStatus` and `createdAt` keep the API filters fast.
 
 ## 📤 CSV Export
 
@@ -311,9 +372,7 @@ The processed records are exported to:
 exports/jobs.csv
 ```
 
-CSV export makes the results easy to inspect using spreadsheet applications such as Microsoft Excel or Google Sheets.
-
-The CSV contains the fields selected by the export service. Its exact columns depend on the current implementation.
+The export now includes all identity fields (URL, title, company, location, job type), verification fields and the AI-cleaned fields (summary, skills, confidence, evidence notes). List values such as `requiredSkills` are joined with `"; "` so the CSV stays valid.
 
 ## 🛡️ Verification and Data Quality
 
@@ -331,35 +390,24 @@ The current verification statuses are preliminary classifications, not guarantee
 
 Improving evidence-based verification and data quality is part of the planned development work.
 
+## 🧪 Running the Tests
+
+The test suite uses Node's built-in test runner — no extra dependency:
+
+```bash
+npm test
+```
+
+Covered areas: URL normalization, deduplication, query building, rule-based verification, CSV export format, company CSV import and Mongoose schema validation. The tests do not call Tavily or Gemini and do not need a database connection.
+
 ## 🔐 Environment and Security
 
-- Keep `.env` out of version control.
+- Keep `.env` out of version control (already covered by `.gitignore`).
 - Never publish database passwords or API keys.
 - Restrict MongoDB Atlas network access to trusted IP addresses.
 - Do not treat AI-generated job information as verified without supporting evidence.
 - Follow the terms of service and access restrictions of search providers and job websites.
 - Use permitted sources and respect applicable rate limits.
-
-## 🧪 Development Notes
-
-This project is being developed incrementally to understand how a real-world AI-enabled backend works.
-
-The current priority is completing a working MVP. Production-level improvements will follow after the core workflow and API have been tested.
-
-Useful commands:
-
-```bash
-# Run the discovery pipeline
-npm run dev
-
-# Run the Express API
-npm run dev:api
-
-# Test the database connection, if configured
-node test-db.js
-```
-
-The last command is optional and assumes `test-db.js` remains available and configured for standalone database testing.
 
 ## 🗺️ Roadmap
 
@@ -373,13 +421,13 @@ The last command is optional and assumes `test-db.js` remains available and conf
 - [x] Create an Express API.
 - [x] Add a health-check endpoint.
 - [x] Add an endpoint to retrieve stored jobs.
-- [ ] Add scheduled job discovery.
-- [ ] Import companies and hiring details from CSV.
-- [ ] Improve listing verification and data quality.
-- [ ] Add stronger filtering and deduplication.
-- [ ] Add automated tests and improve error handling.
-- [ ] Complete MVP documentation and testing.
-- [ ] Improve reliability, scalability, and security for production.
+- [x] Add scheduled job discovery (in-process, `ENABLE_SCHEDULER`).
+- [x] Import companies and hiring details from CSV (used for queries + verification).
+- [x] Improve deduplication with URL normalization and known-job skipping.
+- [x] Add automated tests for pipeline logic and services.
+- [x] Persist AI-cleaned fields and expose pagination + stats via the API.
+- [ ] Improve listing verification and data quality further.
+- [ ] Improve reliability, scalability, and security for production (e.g. Redis-backed rate limiting, structured logging, CI).
 
 ## 🎯 Project Goal
 

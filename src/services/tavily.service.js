@@ -1,19 +1,9 @@
-import {tavily} from "@tavily/core";
+import { tavily } from "@tavily/core";
+import { config, requireEnv } from "../config/env.js";
 
+const tvly = tavily({ apiKey: requireEnv("TAVILY_API_KEY") });
 
-
-if (!process.env.TAVILY_API_KEY) {
-    throw new Error("api key is missing from env file");
-    
-    
-}
-
-const tvly =tavily({
-    apiKey: process.env.TAVILY_API_KEY
-});
-
-
-export async function searchJobs(query, maxResults = 10) {
+export async function searchJobs(query, maxResults = config.searchMaxResults) {
     if (!query || typeof query !== "string") {
         throw new Error("valid query is required");
     }
@@ -51,11 +41,8 @@ export async function searchJobs(query, maxResults = 10) {
     }
 }
 
-
-
-export async function extractJobContent(jobs) {
+export async function extractJobContent(jobs, batchSize = config.extractBatchSize) {
     const extractedJobs = [];
-    const batchSize = 20;
 
     for (let i = 0; i < jobs.length; i += batchSize) {
         const batch = jobs.slice(i, i + batchSize);
